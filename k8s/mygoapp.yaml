@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mygoapp-deployment
+  labels:
+    app: mygoapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mygoapp
+  template:
+    metadata:
+      labels:
+        app: mygoapp
+    spec:
+      containers:
+      - name: mygoapp
+        image: mygoapp:latest
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Never
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mygoapp-service
+spec:
+  selector:
+    app: mygoapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: mygoapp-ingress
+spec:
+  backend:
+    serviceName: mygoapp-service
+    servicePort: 80
